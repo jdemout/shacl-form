@@ -188,7 +188,7 @@ export class DefaultTheme extends Theme {
                     combined.set(contentBytes, metadataBytes.length);
     
                     const base64 = btoa(String.fromCharCode(...combined));
-                    (editor as any)['binaryData'] = base64; // Use any if Editor type isn’t extended yet
+                    (editor as Editor)['binaryData'] = base64; // Use any if Editor type isn’t extended yet
                     editor.parentElement?.dispatchEvent(new Event('change', { bubbles: true }));
                 };
             } else {
