@@ -162,12 +162,35 @@ export class DefaultTheme extends Theme {
         editor.addEventListener('change', (e) => {
             if (editor.files?.length) {
                 e.stopPropagation()
+                /*
                 const reader = new FileReader()
                 reader.readAsDataURL(editor.files[0])
                 reader.onload = () => {
                     (editor as Editor)['binaryData'] = btoa(reader.result as string)
                     editor.parentElement?.dispatchEvent(new Event('change', { bubbles: true }))
                 }
+                */
+                const file = editor.files[0];
+                const reader = new FileReader();
+                reader.readAsArrayBuffer(file);
+                reader.onload = () => {
+                    const binaryContent = reader.result as ArrayBuffer;
+                    const mimeType = file.type || 'application/octet-stream';
+                    const fileName = encodeURIComponent(file.name);
+    
+                    // Metadata with newline delimiter
+                    const metadata = `${mimeType};filename=${fileName}\n`;
+                    const metadataBytes = new TextEncoder().encode(metadata);
+                    const contentBytes = new Uint8Array(binaryContent);
+    
+                    const combined = new Uint8Array(metadataBytes.length + contentBytes.length);
+                    combined.set(metadataBytes, 0);
+                    combined.set(contentBytes, metadataBytes.length);
+    
+                    const base64 = btoa(String.fromCharCode(...combined));
+                    (editor as any)['binaryData'] = base64; // Use any if Editor type isn’t extended yet
+                    editor.parentElement?.dispatchEvent(new Event('change', { bubbles: true }));
+                };
             } else {
                 (editor as Editor)['binaryData'] = undefined               
             }
